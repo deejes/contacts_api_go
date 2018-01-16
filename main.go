@@ -5,7 +5,8 @@ import (
     "log"
     "net/http"
     "encoding/json"
-)
+    //"fmt"
+  )
 
 func main(){
     people = append(people, Person{ID: "1", Firstname: "John", Lastname: "Doe", Address: &Address{City: "City X", State: "State X"}})
@@ -23,7 +24,11 @@ func main(){
 func GetPeople(w http.ResponseWriter, r *http.Request){
     json.NewEncoder(w).Encode(people)
 }
-func GetPerson(w http.ResponseWriter, r *http.Request){}
+func GetPerson(w http.ResponseWriter, r *http.Request){
+      params := mux.Vars(r)
+      for _, item := range people {
+      if item.ID == params["id"]{json.NewEncoder(w).Encode(item)}}
+  }
 func CreatePerson(w http.ResponseWriter, r *http.Request){}
 func DeletePerson(w http.ResponseWriter, r *http.Request){}
 
