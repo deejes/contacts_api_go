@@ -51,26 +51,19 @@ func GetPeople(w http.ResponseWriter, r *http.Request){
     panic(err)
   }
   defer session.Close()
-
-  // populate db with 2 records
   c := session.DB("go_db").C("contacts")
-  err = c.Insert(&Person{"1","Ale", "Da",22},
-  &Person{"2","Boba","Da", 53})
+
+  // grab all results from collection, and store in result
+  result := []Person{}
+  err = c.Find(nil).All(&result)
   if err != nil {
     log.Fatal(err)
   }
 
-  // c:= session.DB("go-db").C("contacts")
-  result := Person{}
-  err = c.Find(bson.M{"id": "1"}).One(&result)
-  //err = c.Find(nil).One(&result)
-  if err != nil {
-    log.Fatal(err)
-  }
-
-  log.Println(result)
   json.NewEncoder(w).Encode(result)
 }
+
+
 func GetPerson(w http.ResponseWriter, r *http.Request){
   // start mongo session
   session, err := mgo.Dial("mongodb://localhost:27017")
