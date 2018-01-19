@@ -10,11 +10,12 @@ import (
 )
 
 type Person struct{
-  ID string `json:"id,omitempty"`
-  Firstname string `json:"firstname,omitempty"`
-  Lastname string `json:"lastname,omitempty"`
-  Age int `json:"age,omitempty"`
+  ID string `json:"id,omitempty" bson:"id,omitempty"`
+  Firstname string `json:"firstname" bson:"firstname"`
+  Lastname string `json:"lastname" bson:"lastname"`
+  Age int `json:"age" bson:"age"`
 }
+
 
 func main(){
   // start session with mongo
@@ -36,7 +37,7 @@ func main(){
   router := mux.NewRouter()
   router.HandleFunc("/people",GetPeople).Methods("GET")
   router.HandleFunc("/people/{id}",GetPerson).Methods("GET")
-  //  router.HandleFunc("/people/{id}",CreatePerson).Methods("POST")
+  router.HandleFunc("/people/{id}",CreatePerson).Methods("POST")
   //  router.HandleFunc("/people/{id}",DeletePerson).Methods("DELETE")
   log.Fatal(http.ListenAndServe(":8000",router))
 }
@@ -88,15 +89,28 @@ func GetPerson(w http.ResponseWriter, r *http.Request){
   json.NewEncoder(w).Encode(result)
 
 }
-//func CreatePerson(w http.ResponseWriter, r *http.Request){
-//    params := mux.Vars(r)
-//    var person Person
-//    _ = json.NewDecoder(r.Body).Decode(&person)
-//    person.ID = params["id"]
-//    people = append(people, person)
-//    json.NewEncoder(w).Encode(people)
-//     }
-//
+
+
+func CreatePerson(w http.ResponseWriter, r *http.Request){
+  // start mongo session
+  session, err := mgo.Dial("mongodb://localhost:27017")
+  if err != nil {
+    panic(err)
+  }
+  defer session.Close()
+  c := session.DB("go_db").C("contacts")
+  // assign decoded request to person variable and insert to collection
+  params := mux.Vars(r)
+  var person Person
+  _ = json.NewDecoder(r.Body).Decode(&person)
+  person.ID = params["id"]
+  c.Insert(person)
+  json.NewEncoder(w).Encode(person)
+
+}
+
+
+
 //func DeletePerson(w http.ResponseWriter, r *http.Request){
 //    params := mux.Vars(r)
 //    for index,item := range people{
