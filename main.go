@@ -38,7 +38,7 @@ func main(){
   router.HandleFunc("/people",GetPeople).Methods("GET")
   router.HandleFunc("/people/{id}",GetPerson).Methods("GET")
   router.HandleFunc("/people/{id}",CreatePerson).Methods("POST")
-  //  router.HandleFunc("/people/{id}",DeletePerson).Methods("DELETE")
+  router.HandleFunc("/people/{id}",DeletePerson).Methods("DELETE")
   log.Fatal(http.ListenAndServe(":8000",router))
 }
 
@@ -111,14 +111,25 @@ func CreatePerson(w http.ResponseWriter, r *http.Request){
 
 
 
-//func DeletePerson(w http.ResponseWriter, r *http.Request){
-//    params := mux.Vars(r)
-//    for index,item := range people{
-//        if item.ID == params["id"] {
-//          people = append(people[:index], people[index+1:]...)
-//          break
-//        }
-//    }
-//}
-//
-//var people string = "a"
+func DeletePerson(w http.ResponseWriter, r *http.Request){
+  // start mongo session
+  session, err := mgo.Dial("mongodb://localhost:27017")
+  if err != nil {
+    panic(err)
+  }
+  defer session.Close()
+  c := session.DB("go_db").C("contacts")
+
+  // grab id from request, and store as string
+  params := mux.Vars(r)
+  var id_string string = string(params["id"])
+
+  // Delete record
+  err = c.Remove(bson.M{"id": id_string})
+  if err != nil {
+    log.Printf("remove fail %v\n", err)
+  }
+  json.NewEncoder(w).Encode("record deleted")
+
+}
+
