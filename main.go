@@ -72,28 +72,28 @@ func GetPeople(w http.ResponseWriter, r *http.Request){
   json.NewEncoder(w).Encode(result)
 }
 func GetPerson(w http.ResponseWriter, r *http.Request){
+  // start mongo session
   session, err := mgo.Dial("mongodb://localhost:27017")
   if err != nil {
     panic(err)
   }
   defer session.Close()
-
-  params := mux.Vars(r)
-  var id_string string = string(params["id"])
-  log.Println(id_string)
   c := session.DB("go_db").C("contacts")
 
+  // grab id from request, and store as string
+  params := mux.Vars(r)
+  var id_string string = string(params["id"])
+
+  // search mongo and store result in result variable
   result := Person{}
   err = c.Find(bson.M{"id": id_string}).One(&result)
-  //err = c.Find(nil).One(&result)
   if err != nil {
     log.Fatal(err)
   }
-  log.Println(result)
+
+  // encode and send back a json response
   json.NewEncoder(w).Encode(result)
 
-  //      for _, item := range people {
-  //      if item.ID == params["id"]{json.NewEncoder(w).Encode(item)}}
 }
 //func CreatePerson(w http.ResponseWriter, r *http.Request){
 //    params := mux.Vars(r)
